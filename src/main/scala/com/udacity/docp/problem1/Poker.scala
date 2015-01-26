@@ -31,33 +31,30 @@ object Poker extends App {
     /**
      * Return a value indicating the ranking of a hand.
      */
-    def rank: List[Int] = {
-      if (straight && flush)
-        List(8, ranks.max)
+    def rank: (Int, List[Int]) = {
+      val straight = (ranks.max - ranks.min) == 4 && ranks.toSet.size == 5
+      val flush = cards.map(_.s).toSet.size == 1
 
-      else if (!kind(4).isEmpty)
-        List(7, kind(4).get, kind(1).get)
+      val counts = ranks.distinct
+        .map {
+          rank => (rank, ranks.count(_ == rank))
+        }.sortBy {
+          case (rank, count) => -1 * count -> -1 * rank
+        }.map(_._2)
 
-      else if (!kind(3).isEmpty && !kind(2).isEmpty)
-        List(6, kind(3).get, kind(2).get)
-
-      else if (flush)
-        5 +: ranks
-
-      else if (straight)
-        List(4, ranks.max)
-
-      else if (!kind(3).isEmpty)
-        List(3, kind(3).get) ++ ranks
-
-      else if (!twoPair.isEmpty)
-        List(2, twoPair.get._1, twoPair.get._2) ++ ranks
-
-      else if (!kind(2).isEmpty)
-        List(1, kind(2).get) ++ ranks
-
-      else
-        0 +: ranks
+      val r = counts match {
+        case 5 :: _ => 9
+        case _ if straight && flush => 8
+        case 4 :: 1 :: _ => 7
+        case 3 :: 2 :: _ => 6
+        case _ if flush => 5
+        case _ if straight => 4
+        case 3 :: 1 :: 1 :: _ => 3
+        case 2 :: 2 :: 1 :: _ => 2
+        case 2 :: 1 :: 1 :: 1 :: _ => 1
+        case _ => 0
+      }
+      (r, ranks)
     }
 
     /**
@@ -67,34 +64,6 @@ object Poker extends App {
       val rs = cards.map(_.rank).sortBy(-_)
       if (rs == List(14, 5, 4, 3, 2)) List(5, 4, 3, 2, 1) else rs
     }
-
-    def straight: Boolean =
-      (ranks.max - ranks.min) == 4 && ranks.toSet.size == 5
-
-    def flush: Boolean = cards.map(_.s).toSet.size == 1
-
-    /**
-     * Returns the first rank that this hand has exactly n of.
-     */
-    def kind(kind: Int, ranks: List[Int] = ranks): Option[Int] =
-      ranks.distinct.map(item => (item, ranks.count(_ == item)))
-        .filter {
-          case (rank, count) if count == kind => true
-          case _ => false
-        }.map(_._1).headOption
-
-    /**
-     * Returns the 2 pairs as a tuple(highest, lowest)
-     */
-    def twoPair: Option[(Int, Int)] = {
-      val highPair = kind(2)
-      val lowPair = kind(2, ranks.reverse)
-      (highPair, lowPair) match {
-        case (Some(high), Some(low)) if high != low => Some((high, low))
-        case _ => None
-      }
-    }
-
   }
 
   object Hand {
@@ -123,6 +92,8 @@ object Poker extends App {
   def poker(hands: Hand*): List[Hand] = {
     import scala.math.Ordering.Implicits._
     val bestHand = hands.maxBy(_.rank) // hands.max
+    println(hands)
+    println(bestHand)
     hands.filter(_.rank == bestHand.rank).toList
   }
 
