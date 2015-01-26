@@ -17,6 +17,9 @@ class PokerTest extends FlatSpec with Matchers {
   val sp = Hand("5S 5D AH 9C 6S") // single pair
   val ah = Hand("AS 2S 3S 4S 6C") // A high
   val sh = Hand("2S 3S 4S 6C 7D") // 7 high
+  val w1 = Hand("6C 7C 8C 9C TC 5C ?B")
+  val w2 = Hand("TD TC 5H 5C 7C ?R ?B")
+  val w3 = Hand("JD TC TH 7C 7D 7S 7H")
 
   "A sf rank" should "return straight flush" in {
     sf.rank should be((8, List(10, 9, 8, 7, 6)))
@@ -70,18 +73,6 @@ class PokerTest extends FlatSpec with Matchers {
     poker(s1, fk, ah, sh) should be(List(fk))
   }
 
-  "A card rank for sf " should "return List(10, 9, 8, 7, 6)" in {
-    sf.ranks should be(List(10, 9, 8, 7, 6))
-  }
-
-  "A card rank for fk " should "return List(9, 9, 9, 9, 7)" in {
-    fk.ranks should be(List(9, 9, 9, 9, 7))
-  }
-
-  "A card rank for fh " should "return List(10, 10, 10, 7, 7)" in {
-    fh.ranks should be(List(10, 10, 10, 7, 7))
-  }
-
   "A sf " should "have a higher rank than fk, fh" in {
     poker(sf, fk, fh) should be(List(sf))
     poker(fh, sf, fk) should be(List(sf))
@@ -109,5 +100,17 @@ class PokerTest extends FlatSpec with Matchers {
   "An A-5 straight" should "be smaller than a 2-6 straight" in {
     poker(s1, s2) should be(List(s2))
     poker(s2, s1) should be(List(s2))
+  }
+
+  "Best w1 wild hand" should "return (7C 8C 9C JC TC)" in {
+    bestWildHand(w1) should be(List(Hand("7C 8C 9C JC TC")))
+  }
+
+  "Best w2 wild hand" should "return (7C 8C 9C JC TC)" in {
+    bestWildHand(w2) should be(List(Hand("7C TC TD TH TS")))
+  }
+
+  "Best w3 wild hand" should "return (7C 7D 7H 7S JD)" in {
+    bestWildHand(w3) should be(List(Hand("7C 7D 7H 7S JD")))
   }
 }

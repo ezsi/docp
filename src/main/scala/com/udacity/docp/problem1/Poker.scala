@@ -1,6 +1,8 @@
 package com.udacity.docp
 package problem1
 
+import scala.math.Ordering.Implicits._
+
 object Poker extends App {
 
   case class Card(r: Char, s: Char) { // rank, suite
@@ -8,6 +10,16 @@ object Poker extends App {
     def this(card: Card) = this(card.r, card.s)
 
     def rank: Int = "--23456789TJQKA".indexOf(r)
+
+    def joker: Boolean = r == '?'
+
+    def substitutes: Seq[Card] = this match {
+      case Card('?', 'B') =>
+        (for (c <- "23456789TJQKA"; s <- "SC") yield Card(c, s))
+      case Card('?', 'R') =>
+        (for (c <- "23456789TJQKA"; s <- "DH") yield Card(c, s))
+      case _ => Seq()
+    }
 
     override def toString = r.toString + s.toString
 
@@ -26,12 +38,21 @@ object Poker extends App {
 
   }
 
-  case class Hand(cards: List[Card]) {
+  case class Hand(cards: Set[Card]) {
 
     /**
      * Return a value indicating the ranking of a hand.
      */
     def rank: (Int, List[Int]) = {
+
+      /**
+       * The list of ranks, sorted with higher first.
+       */
+      def ranks: List[Int] = {
+        val rs = cards.toList.map(_.rank).sortBy(-_)
+        if (rs == List(14, 5, 4, 3, 2)) List(5, 4, 3, 2, 1) else rs
+      }
+
       val straight = (ranks.max - ranks.min) == 4 && ranks.toSet.size == 5
       val flush = cards.map(_.s).toSet.size == 1
 
@@ -57,23 +78,14 @@ object Poker extends App {
       (r, ranks)
     }
 
-    /**
-     * The list of ranks, sorted with higher first.
-     */
-    lazy val ranks: List[Int] = {
-      val rs = cards.map(_.rank).sortBy(-_)
-      if (rs == List(14, 5, 4, 3, 2)) List(5, 4, 3, 2, 1) else rs
-    }
+    def +(card: Card) = Hand(cards + card)
+
   }
 
   object Hand {
 
-    def apply(cards: String): Hand = {
-      val cs = cards.split(" ")
-      if (cs.length != 5)
-        throw new IllegalArgumentException("a hand should consist of 5 cards")
-      Hand(cs.map(card => Card(card)).toList)
-    }
+    def apply(cards: String): Hand =
+      Hand(cards.split(" ").map(card => Card(card)).toSet)
   }
 
   type Deck = List[Card]
@@ -83,18 +95,32 @@ object Poker extends App {
 
   def deal(numHands: Int, numCards: Int = 5, deck: Deck = deck): List[Hand] =
     if (numHands == 0) Nil
-    else Hand(deck.take(numCards)) +:
+    else Hand(deck.take(numCards).toSet) +:
       deal(numHands - 1, numCards, deck.drop(numCards))
 
   /**
    * Returns the best hand or best hands in case of a tie.
    */
   def poker(hands: Hand*): List[Hand] = {
-    import scala.math.Ordering.Implicits._
     val bestHand = hands.maxBy(_.rank) // hands.max
-    println(hands)
-    println(bestHand)
     hands.filter(_.rank == bestHand.rank).toList
+  }
+
+  def bestWildHand(hand: Hand): List[Hand] = {
+    require(hand.cards.size == 7)
+    val (jokers, cards) = hand.cards.partition(_.joker)
+
+    var allhands: Set[Hand] = Set(Hand(cards))
+    jokers.foreach { joker =>
+      allhands = for {
+        hand <- allhands
+        substitute <- joker.substitutes
+      } yield hand + substitute
+    }
+
+    val hands: List[Hand] = allhands.flatMap(
+      hand => hand.cards.toSet.subsets(5).map(Hand(_))).toList
+    poker(hands: _*)
   }
 
 }
