@@ -22,47 +22,47 @@ class PokerTest extends FlatSpec with Matchers {
   val w3 = Hand("JD TC TH 7C 7D 7S 7H")
 
   "A sf rank" should "return straight flush" in {
-    sf.rank should be((8, List(10, 9, 8, 7, 6)))
+    sf.rank should be(List(8, 10, 9, 8, 7, 6))
   }
 
   "A fk rank" should "return four of a kind" in {
-    fk.rank should be((7, List(9, 9, 9, 9, 7)))
+    fk.rank should be(List(7, 9, 9, 9, 9, 7))
   }
 
   "A fh rank" should "return full house" in {
-    fh.rank should be((6, List(10, 10, 10, 7, 7)))
+    fh.rank should be(List(6, 10, 10, 10, 7, 7))
   }
 
   "A f rank" should "return flush" in {
-    f.rank should be((5, List(10, 9, 7, 4, 2)))
+    f.rank should be(List(5, 10, 9, 7, 4, 2))
   }
 
   "A s1 rank" should "return straight" in {
-    s1.rank should be((4, List(5, 4, 3, 2, 1)))
+    s1.rank should be(List(4, 5, 4, 3, 2, 1))
   }
 
   "A s2 rank" should "return straight" in {
-    s2.rank should be((4, List(6, 5, 4, 3, 2)))
+    s2.rank should be(List(4, 6, 5, 4, 3, 2))
   }
 
   "A tk rank" should "return three of a kind" in {
-    tk.rank should be((3, List(10, 10, 10, 7, 4)))
+    tk.rank should be(List(3, 10, 10, 10, 7, 4))
   }
 
   "A tp rank" should "return two pairs" in {
-    tp.rank should be((2, List(9, 9, 6, 5, 5)))
+    tp.rank should be(List(2, 9, 9, 6, 5, 5))
   }
 
   "A sp rank" should "return single pair" in {
-    sp.rank should be((1, List(14, 9, 6, 5, 5)))
+    sp.rank should be(List(1, 14, 9, 6, 5, 5))
   }
 
   "An ah rank" should "return ace high" in {
-    ah.rank should be((0, List(14, 6, 4, 3, 2)))
+    ah.rank should be(List(0, 14, 6, 4, 3, 2))
   }
 
   "An sh rank" should "return 7 high" in {
-    sh.rank should be((0, List(7, 6, 4, 3, 2)))
+    sh.rank should be(List(0, 7, 6, 4, 3, 2))
   }
 
   "A hand of s1, s2, ah, sh" should "return s2" in {

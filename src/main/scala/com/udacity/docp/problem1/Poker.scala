@@ -6,26 +6,27 @@ import scala.math.Ordering.Implicits._
 object Poker extends App {
 
   case class Card(r: Char, s: Char) { // rank, suite
+    private val JOKER_CHAR = '?'
+    private val BLACK_CHAR = 'B'
+    private val RED_CHAR = 'R'
 
     def this(card: Card) = this(card.r, card.s)
 
-    def rank: Int = "--23456789TJQKA".indexOf(r)
+    def rank: Int = Card.CARDS.indexOf(r) + 2
 
     def joker: Boolean = r == '?'
 
     def substitutes: Seq[Card] = this match {
-      case Card('?', 'B') =>
-        (for (c <- "23456789TJQKA"; s <- "SC") yield Card(c, s))
-      case Card('?', 'R') =>
-        (for (c <- "23456789TJQKA"; s <- "DH") yield Card(c, s))
+      case Card(JOKER_CHAR, BLACK_CHAR) => Card.blacks
+      case Card(JOKER_CHAR, RED_CHAR) => Card.reds
       case _ => Seq()
     }
 
     override def toString = r.toString + s.toString
-
   }
 
   object Card {
+    private val CARDS = "23456789TJQKA"
 
     /**
      * Accepts cards like: 6C, TC, 7D, etc...
@@ -36,6 +37,10 @@ object Poker extends App {
       Card(chars.charAt(0), chars.charAt(1))
     }
 
+    def blacks = (for (c <- CARDS; s <- "SC") yield Card(c, s))
+
+    def reds = (for (c <- CARDS; s <- "DH") yield Card(c, s))
+
   }
 
   case class Hand(cards: Set[Card]) {
@@ -43,7 +48,7 @@ object Poker extends App {
     /**
      * Return a value indicating the ranking of a hand.
      */
-    def rank: (Int, List[Int]) = {
+    def rank: List[Int] = {
 
       /**
        * The list of ranks, sorted with higher first.
@@ -75,7 +80,7 @@ object Poker extends App {
         case 2 :: 1 :: 1 :: 1 :: _ => 1
         case _ => 0
       }
-      (r, ranks)
+      r +: ranks
     }
 
     def +(card: Card) = Hand(cards + card)
@@ -90,8 +95,7 @@ object Poker extends App {
 
   type Deck = List[Card]
 
-  def deck: Deck = scala.util.Random.shuffle(
-    (for (c <- "23456789TJQKA"; s <- "SDHC") yield Card(c, s)).toList)
+  def deck: Deck = scala.util.Random.shuffle((Card.reds ++ Card.blacks).toList)
 
   def deal(numHands: Int, numCards: Int = 5, deck: Deck = deck): List[Hand] =
     if (numHands == 0) Nil
@@ -110,16 +114,17 @@ object Poker extends App {
     require(hand.cards.size == 7)
     val (jokers, cards) = hand.cards.partition(_.joker)
 
-    var allhands: Set[Hand] = Set(Hand(cards))
+    var allHands: Set[Hand] = Set(Hand(cards))
     jokers.foreach { joker =>
-      allhands = for {
-        hand <- allhands
+      allHands = for {
+        hand <- allHands
         substitute <- joker.substitutes
       } yield hand + substitute
     }
 
-    val hands: List[Hand] = allhands.flatMap(
-      hand => hand.cards.toSet.subsets(5).map(Hand(_))).toList
+    val hands: List[Hand] = allHands.flatMap { hand =>
+      hand.cards.toSet.subsets(5).map(Hand(_))
+    }.toList
     poker(hands: _*)
   }
 
