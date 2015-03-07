@@ -1,6 +1,7 @@
 require "docp/version"
 
 module Docp
-  puts "hello ruby "
+
+  require_relative 'docp/poker'
 
 end
